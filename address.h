@@ -15,4 +15,7 @@
 #define DL_CH_BASE 0x40000050
 #define CH_OFFSET 0x0040
 
+#define FAN_BASE 0x40010000
+#define FAN_OFFSET 0x04
+
 #endif
