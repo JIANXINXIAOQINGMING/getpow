@@ -50,13 +50,13 @@ int main(int argc, char *argv[])
         case 'u':
             num[1] = 1;
             break;
-        case 's':
+        case 'i':
             num[2] = 1;
             break;
-        case 'i':
+        case 'o':
             num[3] = 1;
             break;
-        case 'o':
+        case 's':
             num[4] = 1;
             break;
         case 'f':
