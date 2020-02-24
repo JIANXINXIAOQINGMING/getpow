@@ -92,27 +92,29 @@ void getpow(int *addr)
         }
         if (*(addr + 5) == 1)
         {
-            uint32_t offset;
+            volatile uint32_t offset;
             volatile uint32_t retl[4];
             volatile long double tm;
-            volatile uint32_t fan[3];
-            if (register_read(FAN_BASE + 0x20 * FAN_OFFSET) == 1)
+            volatile uint32_t fan[3] = {0x31, 0x431, 0x831};
+            if ((register_read(FAN1_BASE + 0x20 * FAN_OFFSET) && register_read(FAN2_BASE + 0x20 * FAN_OFFSET) && register_read(FAN3_BASE + 0x20 * FAN_OFFSET)) == 1)
             {
                 printf("FAN RPM and FPGA Temperature:\n");
                 for (i = 0; i < 3; i++)
                 {
-                    offset = (0x33 + i) * FAN_OFFSET;
-                    retl[i] = register_read(FAN_BASE + offset);
+                    offset = fan[i] * FAN_OFFSET;
+                    retl[i] = register_read(FAN1_BASE + offset);
                     fan[i] = retl[i] * 30;
-                    printf("\tFAN RPM %d:\t%d rpm  \t占比:%d%\n", i, fan[i], fan[i] / 43);
+                    printf("\tFAN RPM %d:\t%d rpm  \t  占空比:%d%\n", i, fan[i], fan[i] / 43);
                 }
-                retl[4] = register_read(FAN_BASE + 0x32 * FAN_OFFSET);
+                retl[4] = register_read(FAN1_BASE + 0x32 * FAN_OFFSET);
                 tm = retl[4] * 503.975 / 4096 / 16 - 273.15;
                 printf("\tFPGA Temperature:\t%4.2lf ℃\n", tm);
             }
             else
             {
                 system("devmem 0x40010080 32 0x01");
+                system("devmem 0x40011080 32 0x01");
+                system("devmem 0x40012080 32 0x01");
             }
         }
         sleep(1);
