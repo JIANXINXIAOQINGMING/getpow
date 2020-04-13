@@ -7,6 +7,9 @@
 #include "getpow_read.h"
 #include "address.h"
 
+#define COMPUTE(x) log10(x / 21474.83648) - 5
+#define ELIXIN(y) 10 * y + 3.01
+
 char *sync_name[8] = {"TXSYNC_A", "RXSYNC_A", "TXSYNC_B", "RXSYNC_B", "TXSYNC_C", "RXSYNC_C", "TXSYNC_D", "RXSYNC_D"};
 
 void getpow(int *addr)
@@ -26,8 +29,8 @@ void getpow(int *addr)
             {
                 offset = i * CH_OFFSET;
                 ret = register_read(DL_CH_BASE + offset);
-                t = log10(ret / 21474.83648) - 5;
-                num = 10 * t;
+                t = COMPUTE(ret);
+                num = ELIXIN(t);
                 printf("\tDL_CH_POW%d:\t%lf dBFs\n", i, num);
             }
         }
@@ -42,8 +45,8 @@ void getpow(int *addr)
             {
                 offset = i * CH_OFFSET;
                 ret = register_read(UL_CH_BASE + offset);
-                t = log10(ret / 21474.83648) - 5;
-                num = 10 * t;
+                t = COMPUTE(ret);
+                num = ELIXIN(t);
                 printf("\tUL_CH_POW%d:\t%lf dBFs\n", i, num);
             }
         }
@@ -58,8 +61,8 @@ void getpow(int *addr)
             {
                 offset = i * PORT_OFFSET;
                 ret = register_read(PORT_DL_BASE + offset);
-                t = log10(ret / 21474.83648) - 5;
-                num = 10 * t;
+                t = COMPUTE(ret);
+                num = ELIXIN(t);
                 printf("\tPORT_DL_POWER%d:\t%lf dBFs\n", i, num);
             }
         }
@@ -74,8 +77,8 @@ void getpow(int *addr)
             {
                 offset = i * PORT_OFFSET;
                 ret = register_read(PORT_UL_BASE + offset);
-                t = log10(ret / 21474.83648) - 5;
-                num = 10 * t;
+                t = COMPUTE(ret);
+                num = ELIXIN(t);
                 printf("\tPORT_UL_POWER%d:\t%lf dBFs\n", i, num);
             }
         }
