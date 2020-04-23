@@ -115,9 +115,9 @@ void getpow(int *addr)
             }
             else
             {
-                system("devmem 0x40010080 32 0x01");
-                system("devmem 0x40011080 32 0x01");
-                system("devmem 0x40012080 32 0x01");
+                system("devmem 0xA0018080 32 0x01");
+                system("devmem 0xA0019080 32 0x01");
+                system("devmem 0xA001A080 32 0x01");
             }
         }
         sleep(1);
