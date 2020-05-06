@@ -96,7 +96,7 @@ void getpow(int *addr)
             volatile uint32_t retl[4];
             volatile long double tm;
             volatile uint32_t fan[3] = {0x31, 0x431, 0x831};
-            if ((register_read(FAN1_BASE + 0x20 * FAN_OFFSET) && register_read(FAN2_BASE + 0x20 * FAN_OFFSET) && register_read(FAN3_BASE + 0x20 * FAN_OFFSET)) == 1)
+            if ((register_read(FAN1_BASE + 0x20 * FAN_OFFSET) && register_read(FAN2_BASE + 0x20 * FAN_OFFSET) && register_read(FAN3_BASE + 0x20 * FAN_OFFSET)) == 0)
             {
                 printf("FAN RPM and FPGA Temperature:\n");
                 for (i = 0; i < 3; i++)
@@ -112,9 +112,9 @@ void getpow(int *addr)
             }
             else
             {
-                system("devmem 0x40010080 32 0x01");
-                system("devmem 0x40011080 32 0x01");
-                system("devmem 0x40012080 32 0x01");
+                system("devmem 0x40010080 32 0x00");
+                system("devmem 0x40011080 32 0x00");
+                system("devmem 0x40012080 32 0x00");
             }
         }
         sleep(1);
