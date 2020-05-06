@@ -110,14 +110,14 @@ void getpow(int *addr)
                     printf("\tFAN RPM %d:\t%d rpm  \t  占空比:%d%\n", i, fan[i], fan[i] / 43);
                 }
                 retl[4] = register_read(FAN1_BASE + 0x32 * FAN_OFFSET);
-                tm = retl[4] * 503.975 / 4096 / 16 - 273.15;
+                tm = retl[4] * 502.9098 / 4096 / 16 - 273.8195;
                 printf("\tFPGA Temperature:\t%4.2lf ℃\n", tm);
             }
             else
             {
-                system("devmem 0xA0018080 32 0x01");
-                system("devmem 0xA0019080 32 0x01");
-                system("devmem 0xA001A080 32 0x01");
+                system("sudo devmem 0xA0018080 32 0x01");
+                system("sudo devmem 0xA0019080 32 0x01");
+                system("sudo devmem 0xA001A080 32 0x01");
             }
         }
         sleep(1);
