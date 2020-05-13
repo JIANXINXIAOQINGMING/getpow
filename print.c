@@ -9,6 +9,11 @@
 
 #define COMPUTE(x) log10(x / 21474.83648) - 5
 #define ELIXIN(y) 10 * y + 3.01
+#define DECIDE(x) \
+    if (x > 100)  \
+    {             \
+        x = 100;  \
+    }
 
 char *sync_name[8] = {"TXSYNC_A", "RXSYNC_A", "TXSYNC_B", "RXSYNC_B", "TXSYNC_C", "RXSYNC_C", "TXSYNC_D", "RXSYNC_D"};
 
@@ -95,7 +100,7 @@ void getpow(int *addr)
         }
         if (*(addr + 5) == 1)
         {
-            volatile uint32_t offset, pwm_sp;
+            volatile uint32_t offset, pwm_sp, sum_fan, sum_pwm;
             volatile uint32_t retl[3], pwm_re[3];
             volatile long double tm;
             volatile uint32_t fan[3] = {0x31, 0x431, 0x831};
@@ -110,7 +115,11 @@ void getpow(int *addr)
                     retl[i] = register_read(FAN1_BASE + offset);
                     pwm_re[i] = register_read(FAN1_BASE + pwm_sp);
                     fan[i] = retl[i] * 30;
-                    printf("\tFAN RPM %d:\t%d rpm  \t  转速百分比:%d% \t  PWM占空比:%d%\n", i, fan[i], fan[i] / 43, pwm_re[i] / 43);
+                    sum_fan = fan[i] / 43;
+                    sum_pwm = pwm_re[i] / 43;
+                    DECIDE(sum_fan);
+                    DECIDE(sum_pwm);
+                    printf("\tFAN RPM %d:\t%d rpm  \t  转速百分比:%d% \t  PWM占空比:%d%\n", i, fan[i], sum_fan, sum_pwm);
                 }
                 retl[4] = register_read(FAN1_BASE + 0x32 * FAN_OFFSET);
                 tm = retl[4] * 502.9098 / 4096 / 16 - 273.8195;
