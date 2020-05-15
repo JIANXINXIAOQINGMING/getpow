@@ -5,7 +5,7 @@
 #include "print.h"
 
 #define version 1.1
-int num[6];
+int num[7];
 
 void print_usage(FILE *stream, int exit_code)
 {
@@ -17,6 +17,7 @@ void print_usage(FILE *stream, int exit_code)
             "\t-s  --sync     JESD sync status\n"
             "\t-i  --podl     DL PORT input power (Data from ADC , input power)\n"
             "\t-o  --poul     UL PORT output power (Data to DAC , output power)\n"
+            "\t-t  --time     Refresh times\n"
             "\t-f  --fan      FAN RPM and FPGA Temperature\n");
     exit(exit_code);
 }
@@ -26,7 +27,7 @@ int main(int argc, char *argv[])
     int next_option = 1;
     int re_val;
 
-    const char *const short_options = "hdusiof";
+    const char *const short_options = "hdusiot:f";
     const struct option long_options[] = {
         {"help", 0, NULL, 'h'},
         {"dlch", 0, NULL, 'd'},
@@ -34,6 +35,7 @@ int main(int argc, char *argv[])
         {"sync", 0, NULL, 's'},
         {"podl", 0, NULL, 'i'},
         {"poul", 0, NULL, 'o'},
+        {"time", 1, NULL, 't'},
         {"fan", 0, NULL, 'f'},
         {NULL, 0, NULL, 0}};
 
@@ -61,6 +63,9 @@ int main(int argc, char *argv[])
             break;
         case 'f':
             num[5] = 1;
+            break;
+        case 't':
+            num[6] = atoi(optarg);
             break;
         }
     }

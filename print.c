@@ -19,8 +19,19 @@ char *sync_name[8] = {"TXSYNC_A", "RXSYNC_A", "TXSYNC_B", "RXSYNC_B", "TXSYNC_C"
 
 void getpow(int *addr)
 {
-    int i;
-    while (1)
+    int i, number, time;
+    if (*(addr + 6) != 0)
+    {
+        time = *(addr + 6);
+        number = 1;
+    }
+    else
+    {
+        time = 1;
+        number = 0;
+    }
+
+    while (time)
     {
         system("clear");
         if (*addr == 1)
@@ -132,6 +143,7 @@ void getpow(int *addr)
                 system("sudo devmem 0xA001A080 32 0x01");
             }
         }
+        time = time - number;
         sleep(1);
     }
 }
