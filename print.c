@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #include <stdlib.h>
 #include <math.h>
 #include <getopt.h>
@@ -7,6 +8,7 @@
 #include "getpow_read.h"
 #include "address.h"
 
+#define CHNUM 24
 #define COMPUTE(x) log10(x / 21474.83648) - 5
 #define ELIXIN(y) 10 * y + 3.01
 #define DECIDE(x) \
@@ -16,6 +18,39 @@
     }
 
 char *sync_name[8] = {"TXSYNC_A", "RXSYNC_A", "TXSYNC_B", "RXSYNC_B", "TXSYNC_C", "RXSYNC_C", "TXSYNC_D", "RXSYNC_D"};
+char *ad9371_interface[4] = {"/sys/kernel/debug/iio/iio:device4/temperature", "/sys/kernel/debug/iio/iio:device5/temperature", "/sys/kernel/debug/iio/iio:device6/temperature", "/sys/kernel/debug/iio/iio:device7/temperature"};
+char *ad9371_name_address[4] = {"/sys/bus/iio/devices/iio:device4/name", "/sys/bus/iio/devices/iio:device5/name", "/sys/bus/iio/devices/iio:device6/name", "/sys/bus/iio/devices/iio:device7/name"};
+char *ad9371_name[4] = {"ad937x-phy-1", "ad937x-phy-2", "ad937x-phy-3", "ad937x-phy-4"};
+
+static int adi9371_temperature(int num)
+{
+    FILE *fp;
+    char buff[256];
+    char command_name[256] = "cat ", command_temp[256] = "cat ";
+
+    strcat(command_name, ad9371_name_address[num]);
+    fp = popen(command_name, "r");
+    if (fp == NULL)
+    {
+        printf("open %s error!\n", ad9371_name_address[num]);
+        exit(-1);
+    }
+    fgets(buff, sizeof(buff), fp);
+    fclose(fp);
+    if ((strncmp(buff, ad9371_name[num], strlen(ad9371_name[num])) == 0))
+    {
+        strcat(command_temp, ad9371_interface[num]);
+        fp = popen(command_temp, "r");
+        if (fp == NULL)
+        {
+            printf("open %s error!\n", ad9371_interface[num]);
+            exit(-1);
+        }
+        fgets(buff, sizeof(buff), fp);
+        printf("\t%s temperature: %s ℃", ad9371_name[num], buff);
+        fclose(fp);
+    }
+}
 
 void getpow(int *addr)
 {
@@ -41,7 +76,7 @@ void getpow(int *addr)
             volatile long double t;
             long double num;
             printf("DL_CH_POW:\n");
-            for (i = 0; i < 32; i++)
+            for (i = 0; i < CHNUM; i++)
             {
                 offset = i * CH_OFFSET;
                 ret = register_read(DL_CH_BASE + offset);
@@ -57,7 +92,7 @@ void getpow(int *addr)
             volatile long double t;
             long double num;
             printf("UL_CH_POW:\n");
-            for (i = 0; i < 32; i++)
+            for (i = 0; i < CHNUM; i++)
             {
                 offset = i * CH_OFFSET;
                 ret = register_read(UL_CH_BASE + offset);
@@ -135,6 +170,8 @@ void getpow(int *addr)
                 retl[4] = register_read(FAN1_BASE + 0x32 * FAN_OFFSET);
                 tm = retl[4] * 502.9098 / 4096 / 16 - 273.8195;
                 printf("\tFPGA Temperature:\t%4.2lf ℃\n", tm);
+                for (i = 0; i < 4; i++)
+                    adi9371_temperature(i);
             }
             else
             {
