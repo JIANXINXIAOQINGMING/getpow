@@ -8,6 +8,9 @@
 #include "getpow_read.h"
 #include "address.h"
 
+#define AD9371_NUM 4
+#define CLEAR_FORMAT_0 system("clear")
+#define CLEAR_FORMAT_1 printf("%c[0;0H", 0x1b)
 #define CHNUM 24
 #define COMPUTE(x) log10(x / 21474.83648) - 5
 #define ELIXIN(y) 10 * y + 3.01
@@ -18,38 +21,42 @@
     }
 
 char *sync_name[8] = {"TXSYNC_A", "RXSYNC_A", "TXSYNC_B", "RXSYNC_B", "TXSYNC_C", "RXSYNC_C", "TXSYNC_D", "RXSYNC_D"};
-char *ad9371_interface[4] = {"/sys/kernel/debug/iio/iio:device4/temperature", "/sys/kernel/debug/iio/iio:device5/temperature", "/sys/kernel/debug/iio/iio:device6/temperature", "/sys/kernel/debug/iio/iio:device7/temperature"};
-char *ad9371_name_address[4] = {"/sys/bus/iio/devices/iio:device4/name", "/sys/bus/iio/devices/iio:device5/name", "/sys/bus/iio/devices/iio:device6/name", "/sys/bus/iio/devices/iio:device7/name"};
-char *ad9371_name[4] = {"ad937x-phy-1", "ad937x-phy-2", "ad937x-phy-3", "ad937x-phy-4"};
+char *ad9371_interface[AD9371_NUM] = {"/sys/kernel/debug/iio/iio:device4/temperature", "/sys/kernel/debug/iio/iio:device5/temperature", "/sys/kernel/debug/iio/iio:device6/temperature", "/sys/kernel/debug/iio/iio:device7/temperature"};
+char *ad9371_name_address[AD9371_NUM] = {"/sys/bus/iio/devices/iio:device4/name", "/sys/bus/iio/devices/iio:device5/name", "/sys/bus/iio/devices/iio:device6/name", "/sys/bus/iio/devices/iio:device7/name"};
+char *ad9371_name[AD9371_NUM] = {"ad937x-phy-1", "ad937x-phy-2", "ad937x-phy-3", "ad937x-phy-4"};
 
-static int adi9371_temperature(int num)
+static int read_temp(int i)
 {
-    FILE *fp;
-    char buff[256];
-    char command_name[256] = "cat ", command_temp[256] = "cat ";
+    char read_temp_buff[3] = {0};
+    char read_buff[1024] = {0};
+    int *get_buff;
+    uint32_t transfrom_temp = 0;
 
-    strcat(command_name, ad9371_name_address[num]);
-    fp = popen(command_name, "r");
-    if (fp == NULL)
-    {
-        printf("open %s error!\n", ad9371_name_address[num]);
-        exit(-1);
-    }
-    fgets(buff, sizeof(buff), fp);
-    fclose(fp);
-    if ((strncmp(buff, ad9371_name[num], strlen(ad9371_name[num])) == 0))
-    {
-        strcat(command_temp, ad9371_interface[num]);
-        fp = popen(command_temp, "r");
-        if (fp == NULL)
-        {
-            printf("open %s error!\n", ad9371_interface[num]);
-            exit(-1);
-        }
-        fgets(buff, sizeof(buff), fp);
-        printf("\t%s temperature: %s ℃", ad9371_name[num], buff);
-        fclose(fp);
-    }
+    get_buff = (int *)malloc(1024);
+
+    sprintf(get_buff, "%s%s%s", "grep \"", ad9371_name[i - 1], "\" /sys/bus/iio/devices/*/name");
+    get_system_open(get_buff, read_buff);
+
+    char *tmp = strstr(read_buff, "iio:device");
+    sprintf(get_buff, "%s%d%s", "/sys/kernel/debug/iio/iio:device", atoi(tmp + 10), "/temperature");
+    open_device(get_buff, read_temp_buff, 0, 5);
+    transfrom_temp = strtol(read_temp_buff, NULL, 10);
+
+    printf("\t%s:\t%d ℃\n", ad9371_name[i - 1], transfrom_temp);
+
+    free(get_buff);
+
+    return transfrom_temp;
+}
+
+static int rau_temperature(void)
+{
+    read_temp(1);
+    read_temp(2);
+    read_temp(3);
+    read_temp(4);
+
+    return 0;
 }
 
 void getpow(int *addr)
@@ -66,10 +73,23 @@ void getpow(int *addr)
         number = 0;
     }
 
+    if (addr[7] == 1)
+    {
+        printf("\033[H\033[2J");
+    }
+
     while (time)
     {
-        system("clear");
-        if (*addr == 1)
+        if (addr[7] == 1)
+        {
+            CLEAR_FORMAT_1;
+        }
+        else
+        {
+            CLEAR_FORMAT_0;
+        }
+
+        if (addr[0] == 1)
         {
             uint32_t offset;
             volatile uint32_t ret;
@@ -85,7 +105,7 @@ void getpow(int *addr)
                 printf("\tDL_CH_POW%d:\t%lf dBFs\n", i, num);
             }
         }
-        if (*(addr + 1) == 1)
+        if (addr[1] == 1)
         {
             uint32_t offset;
             volatile uint32_t ret;
@@ -101,7 +121,7 @@ void getpow(int *addr)
                 printf("\tUL_CH_POW%d:\t%lf dBFs\n", i, num);
             }
         }
-        if (*(addr + 2) == 1)
+        if (addr[2] == 1)
         {
             uint32_t offset;
             volatile uint32_t ret;
@@ -117,7 +137,7 @@ void getpow(int *addr)
                 printf("\tPORT_DL_POWER%d:\t%lf dBFs\n", i, num);
             }
         }
-        if (*(addr + 3) == 1)
+        if (addr[3] == 1)
         {
             uint32_t offset;
             volatile uint32_t ret;
@@ -133,7 +153,7 @@ void getpow(int *addr)
                 printf("\tPORT_UL_POWER%d:\t%lf dBFs\n", i, num);
             }
         }
-        if (*(addr + 4) == 1)
+        if (addr[4] == 1)
         {
             volatile uint32_t offset, sync_addr;
             printf("SYNC\n");
@@ -144,7 +164,7 @@ void getpow(int *addr)
                 printf("0x0000%lX\n", register_read(SYNC_BASE + sync_addr));
             }
         }
-        if (*(addr + 5) == 1)
+        if (addr[5] == 1)
         {
             volatile uint32_t offset, pwm_sp, sum_fan, sum_pwm;
             volatile uint32_t retl[3], pwm_re[3];
@@ -170,8 +190,7 @@ void getpow(int *addr)
                 retl[4] = register_read(FAN1_BASE + 0x32 * FAN_OFFSET);
                 tm = retl[4] * 502.9098 / 4096 / 16 - 273.8195;
                 printf("\tFPGA Temperature:\t%4.2lf ℃\n", tm);
-                for (i = 0; i < 4; i++)
-                    adi9371_temperature(i);
+                rau_temperature();
             }
             else
             {

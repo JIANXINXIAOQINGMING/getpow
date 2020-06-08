@@ -38,3 +38,34 @@ int register_read(uint32_t addr)
     close(fd);
     return re_value;
 }
+
+int get_system_open(char *cmd, char *data_buff)
+{
+    FILE *fp;
+
+    fp = popen(cmd, "r");
+    if (fp == NULL)
+    {
+        exit(-1);
+    }
+    fread(data_buff, 1, 1024, fp);
+    pclose(fp);
+}
+
+int open_device(char *dev, char *data_buff, int where_start, int data_len)
+{
+    FILE *fp;
+
+    fp = fopen(dev, "r");
+    if (fp == NULL)
+    {
+        exit(-1);
+    }
+    rewind(fp);
+    fseek(fp, where_start, 0);
+    fread(data_buff, 1, data_len, fp);
+
+    fclose(fp);
+
+    return 0;
+}
