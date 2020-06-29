@@ -188,7 +188,7 @@ void getpow(int *addr)
                     printf("\tFAN RPM %d:\t%d rpm  \t  转速百分比:%d% \t  PWM占空比:%d%\n", i, fan[i], sum_fan, sum_pwm);
                 }
                 retl[4] = register_read(FAN1_BASE + 0x32 * FAN_OFFSET);
-                tm = retl[4] * 502.9098 / 4096 / 16 - 273.8195;
+                tm = retl[4] * 509.314 / 4096 / 16 - 280.23088;
                 printf("\tFPGA Temperature:\t%4.2lf ℃\n", tm);
                 rau_temperature();
             }
